@@ -1,13 +1,19 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 
-
 export async function GET() {
-  const products = await prisma.product.findMany({
-    include: {
-      inventories: true,
-    },
-  });
+  try {
+    const products = await prisma.product.findMany();
 
-  return NextResponse.json(products);
+    return NextResponse.json(products);
+  } catch (error) {
+    return NextResponse.json(
+      {
+        error: "Failed to fetch products",
+      },
+      {
+        status: 500,
+      }
+    );
+  }
 }
