@@ -1,38 +1,16 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import prisma from "@/lib/prisma";
 
 export async function POST(
   req: Request,
-  { params }: { params: { id: string } }
+  context: any
 ) {
   try {
-    const reservation = await prisma.reservation.findUnique({
-      where: {
-        id: params.id,
-      },
-    });
-
-    if (!reservation) {
-      return NextResponse.json(
-        { error: "Reservation not found" },
-        { status: 404 }
-      );
-    }
-
-    await prisma.inventory.update({
-      where: {
-        id: reservation.inventoryId,
-      },
-      data: {
-        reservedQuantity: {
-          decrement: reservation.quantity,
-        },
-      },
-    });
+    const id = context.params.id;
 
     await prisma.reservation.update({
       where: {
-        id: reservation.id,
+        id: id,
       },
       data: {
         status: "CANCELLED",
@@ -44,8 +22,12 @@ export async function POST(
     });
   } catch (error) {
     return NextResponse.json(
-      { error: "Failed to cancel reservation" },
-      { status: 500 }
+      {
+        error: "Cancel failed",
+      },
+      {
+        status: 500,
+      }
     );
   }
 }

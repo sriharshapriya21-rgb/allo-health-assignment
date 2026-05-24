@@ -1,46 +1,34 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import prisma from "@/lib/prisma";
 
 export async function POST(
   req: Request,
-  { params }: { params: { id: string } }
+  context: any
 ) {
   try {
-    const reservation = await prisma.reservation.findUnique({
+    const id = context.params.id;
+
+    const reservation = await prisma.reservation.update({
       where: {
-        id: params.id,
+        id: id,
+      },
+      data: {
+        status: "CONFIRMED",
       },
     });
 
-    if (!reservation) {
-      return NextResponse.json(
-        { error: "Reservation not found" },
-        { status: 404 }
-      );
-    }
-
-    if (new Date() > reservation.expiresAt) {
-      return NextResponse.json(
-        { error: "Reservation expired" },
-        { status: 410 }
-      );
-    }
-
-    const updatedReservation =
-      await prisma.reservation.update({
-        where: {
-          id: params.id,
-        },
-        data: {
-          status: "CONFIRMED",
-        },
-      });
-
-    return NextResponse.json(updatedReservation);
+    return NextResponse.json({
+      message: "Reservation confirmed",
+      reservation,
+    });
   } catch (error) {
     return NextResponse.json(
-      { error: "Failed to confirm reservation" },
-      { status: 500 }
+      {
+        error: "Confirmation failed",
+      },
+      {
+        status: 500,
+      }
     );
   }
 }
