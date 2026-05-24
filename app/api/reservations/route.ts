@@ -1,63 +1,33 @@
-import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { NextRequest, NextResponse } from "next/server";
+import prisma from "../../../../../lib/prisma";
 
-export async function POST(req: Request) {
+export async function POST(
+  req: NextRequest,
+  context: { params: Promise<{ id: string }> }
+) {
   try {
-    const body = await req.json();
+    const { id } = await context.params;
 
-    const { productId, warehouseId, quantity } = body;
-
-    const inventory = await prisma.inventory.findFirst({
+    await prisma.reservation.update({
       where: {
-        productId,
-        warehouseId,
-      },
-    });
-
-    if (!inventory) {
-      return NextResponse.json(
-        { error: "Inventory not found" },
-        { status: 404 }
-      );
-    }
-
-    const availableStock =
-      inventory.totalQuantity - inventory.reservedQuantity;
-
-    if (availableStock < quantity) {
-      return NextResponse.json(
-        { error: "Not enough stock available" },
-        { status: 409 }
-      );
-    }
-
-    await prisma.inventory.update({
-      where: {
-        id: inventory.id,
+        id,
       },
       data: {
-        reservedQuantity: {
-          increment: quantity,
-        },
+        status: "CANCELLED",
       },
     });
 
-    const reservation = await prisma.reservation.create({
-      data: {
-        inventoryId: inventory.id,
-        quantity,
-        status: "PENDING",
-        expiresAt: new Date(Date.now() + 10 * 60 * 1000),
-      },
-    });
-
-    return NextResponse.json(reservation, {
-      status: 201,
+    return NextResponse.json({
+      message: "Reservation cancelled",
     });
   } catch (error) {
     return NextResponse.json(
-      { error: "Reservation failed" },
-      { status: 500 }
+      {
+        error: "Cancel failed",
+      },
+      {
+        status: 500,
+      }
     );
   }
 }
