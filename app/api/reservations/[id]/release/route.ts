@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import prisma from "../../../../../lib/prisma";
+import prisma from "@/lib/prisma";
 
 export async function POST(
-  req: NextRequest,
-  context: { params: Promise<{ id: string }> }
+  request: NextRequest,
+  context: any
 ) {
   try {
-    const { id } = await context.params;
+    const id = context.params.id;
 
     await prisma.reservation.update({
       where: {
@@ -23,7 +23,7 @@ export async function POST(
   } catch (error) {
     return NextResponse.json(
       {
-        error: "Cancel failed",
+        error: "Release failed",
       },
       {
         status: 500,
