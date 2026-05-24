@@ -1,26 +1,23 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 
 export async function POST(
-  req: Request,
-  context: any
+  req: NextRequest,
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const id = context.params.id;
+    const { id } = await context.params;
 
     const reservation = await prisma.reservation.update({
       where: {
-        id: id,
+        id,
       },
       data: {
         status: "CONFIRMED",
       },
     });
 
-    return NextResponse.json({
-      message: "Reservation confirmed",
-      reservation,
-    });
+    return NextResponse.json(reservation);
   } catch (error) {
     return NextResponse.json(
       {
