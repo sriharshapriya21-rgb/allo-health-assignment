@@ -2,11 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "../../../../../lib/prisma";
 
 export async function POST(
-  req: NextRequest,
-  context: { params: Promise<{ id: string }> }
+  request: NextRequest,
+  context: any
 ) {
   try {
-    const { id } = await context.params;
+    const id = context.params.id;
 
     const reservation = await prisma.reservation.update({
       where: {
